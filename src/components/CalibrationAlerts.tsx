@@ -1,6 +1,7 @@
 import { AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
-import { mockInstruments, type Instrument } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
+import { useInstruments, type Instrument } from "@/hooks/useInstruments";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function getAlertInstruments(instruments: Instrument[]) {
   const today = new Date();
@@ -8,13 +9,13 @@ function getAlertInstruments(instruments: Instrument[]) {
   in30Days.setDate(in30Days.getDate() + 30);
 
   const vencidos = instruments.filter(i => {
-    if (!i.proximaCalibracao) return false;
-    return new Date(i.proximaCalibracao) < today;
+    if (!i.proxima_calibracao) return false;
+    return new Date(i.proxima_calibracao) < today;
   });
 
   const aVencer = instruments.filter(i => {
-    if (!i.proximaCalibracao) return false;
-    const prox = new Date(i.proximaCalibracao);
+    if (!i.proxima_calibracao) return false;
+    const prox = new Date(i.proxima_calibracao);
     return prox >= today && prox <= in30Days;
   });
 
@@ -22,7 +23,10 @@ function getAlertInstruments(instruments: Instrument[]) {
 }
 
 export function CalibrationAlerts() {
-  const { vencidos, aVencer } = getAlertInstruments(mockInstruments);
+  const { data: instruments = [], isLoading } = useInstruments();
+  const { vencidos, aVencer } = getAlertInstruments(instruments);
+
+  if (isLoading) return <Skeleton className="h-48" />;
 
   return (
     <div className="rounded-lg border border-border bg-card p-5">
@@ -40,44 +44,28 @@ export function CalibrationAlerts() {
         )}
 
         {vencidos.map((inst) => (
-          <div
-            key={inst.id}
-            className="flex items-center justify-between p-3 rounded-md bg-destructive/5 border border-destructive/10"
-          >
+          <div key={inst.id} className="flex items-center justify-between p-3 rounded-md bg-destructive/5 border border-destructive/10">
             <div className="flex items-center gap-3 min-w-0">
               <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {inst.codigo} - {inst.descricao}
-                </p>
+                <p className="text-sm font-medium text-foreground truncate">{inst.codigo} - {inst.descricao}</p>
                 <p className="text-xs text-muted-foreground">{inst.setor}</p>
               </div>
             </div>
-            <Badge variant="destructive" className="shrink-0 text-[10px]">
-              Vencido
-            </Badge>
+            <Badge variant="destructive" className="shrink-0 text-[10px]">Vencido</Badge>
           </div>
         ))}
 
         {aVencer.map((inst) => (
-          <div
-            key={inst.id}
-            className="flex items-center justify-between p-3 rounded-md bg-warning/5 border border-warning/10"
-          >
+          <div key={inst.id} className="flex items-center justify-between p-3 rounded-md bg-warning/5 border border-warning/10">
             <div className="flex items-center gap-3 min-w-0">
               <Clock className="h-4 w-4 text-warning shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {inst.codigo} - {inst.descricao}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Vence em {inst.proximaCalibracao}
-                </p>
+                <p className="text-sm font-medium text-foreground truncate">{inst.codigo} - {inst.descricao}</p>
+                <p className="text-xs text-muted-foreground">Vence em {inst.proxima_calibracao}</p>
               </div>
             </div>
-            <Badge variant="outline" className="shrink-0 text-[10px] border-warning/30 text-warning">
-              A vencer
-            </Badge>
+            <Badge variant="outline" className="shrink-0 text-[10px] border-warning/30 text-warning">A vencer</Badge>
           </div>
         ))}
       </div>

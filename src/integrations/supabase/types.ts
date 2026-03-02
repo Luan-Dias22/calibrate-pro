@@ -14,16 +14,206 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: Json | null
+          id: string
+          registro_id: string | null
+          tabela: string
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          registro_id?: string | null
+          tabela: string
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          registro_id?: string | null
+          tabela?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      calibrations: {
+        Row: {
+          certificado_url: string | null
+          created_at: string
+          data_calibracao: string
+          erro_medido: number
+          id: string
+          instrumento_id: string
+          observacoes: string | null
+          proxima_calibracao: string
+          resultado: string
+          tecnico_id: string | null
+          tecnico_nome: string
+          tolerancia: number
+        }
+        Insert: {
+          certificado_url?: string | null
+          created_at?: string
+          data_calibracao: string
+          erro_medido: number
+          id?: string
+          instrumento_id: string
+          observacoes?: string | null
+          proxima_calibracao: string
+          resultado: string
+          tecnico_id?: string | null
+          tecnico_nome: string
+          tolerancia: number
+        }
+        Update: {
+          certificado_url?: string | null
+          created_at?: string
+          data_calibracao?: string
+          erro_medido?: number
+          id?: string
+          instrumento_id?: string
+          observacoes?: string | null
+          proxima_calibracao?: string
+          resultado?: string
+          tecnico_id?: string | null
+          tecnico_nome?: string
+          tolerancia?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calibrations_instrumento_id_fkey"
+            columns: ["instrumento_id"]
+            isOneToOne: false
+            referencedRelation: "instruments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instruments: {
+        Row: {
+          codigo: string
+          created_at: string
+          created_by: string | null
+          data_aquisicao: string
+          descricao: string
+          fabricante: string
+          id: string
+          modelo: string
+          periodicidade_dias: number
+          proxima_calibracao: string | null
+          responsavel: string
+          serie: string
+          setor: string
+          status: string
+          ultima_calibracao: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          created_by?: string | null
+          data_aquisicao: string
+          descricao: string
+          fabricante: string
+          id?: string
+          modelo: string
+          periodicidade_dias?: number
+          proxima_calibracao?: string | null
+          responsavel: string
+          serie: string
+          setor: string
+          status?: string
+          ultima_calibracao?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          created_by?: string | null
+          data_aquisicao?: string
+          descricao?: string
+          fabricante?: string
+          id?: string
+          modelo?: string
+          periodicidade_dias?: number
+          proxima_calibracao?: string | null
+          responsavel?: string
+          serie?: string
+          setor?: string
+          status?: string
+          ultima_calibracao?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "tecnico" | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +340,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "tecnico", "visualizador"],
+    },
   },
 } as const

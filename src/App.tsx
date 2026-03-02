@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Index from "./pages/Index";
 import Instruments from "./pages/Instruments";
 import Calibrations from "./pages/Calibrations";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/instrumentos" element={<Instruments />} />
             <Route path="/calibracoes" element={<Calibrations />} />
+            <Route path="/configuracoes" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
