@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Upload, FileText, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { Instrument } from "@/hooks/useInstruments";
 
 const schema = z.object({
@@ -33,11 +36,12 @@ const schema = z.object({
   data_calibracao: z.string().min(1, "Obrigatório"),
   resultado: z.enum(["aprovado", "reprovado"]),
   tecnico_nome: z.string().trim().min(1, "Obrigatório").max(100),
-  certificado_url: z.string().url("URL inválida").optional().or(z.literal("")),
   observacoes: z.string().max(500).optional(),
 });
 
-export type CalibrationFormValues = z.infer<typeof schema>;
+export type CalibrationFormValues = z.infer<typeof schema> & {
+  certificado_url?: string | null;
+};
 
 interface Props {
   open: boolean;
@@ -48,21 +52,72 @@ interface Props {
 }
 
 export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, isLoading }: Props) {
-  const form = useForm<CalibrationFormValues>({
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
       instrumento_id: "",
       data_calibracao: new Date().toISOString().split("T")[0],
       resultado: "aprovado",
       tecnico_nome: "",
-      certificado_url: "",
       observacoes: "",
     },
   });
 
   useEffect(() => {
-    if (open) form.reset();
+    if (open) {
+      form.reset();
+      setFile(null);
+    }
   }, [open, form]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    if (selected.type !== "application/pdf") {
+      toast.error("Apenas arquivos PDF são permitidos.");
+      return;
+    }
+    if (selected.size > 10 * 1024 * 1024) {
+      toast.error("O arquivo deve ter no máximo 10MB.");
+      return;
+    }
+    setFile(selected);
+  };
+
+  const handleSubmit = async (values: z.infer<typeof schema>) => {
+    let certificado_url: string | null = null;
+
+    if (file) {
+      setUploading(true);
+      const timestamp = Date.now();
+      const filePath = `${values.instrumento_id}/${timestamp}_${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("certificados")
+        .upload(filePath, file, { contentType: "application/pdf" });
+
+      if (uploadError) {
+        toast.error(`Erro no upload: ${uploadError.message}`);
+        setUploading(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("certificados")
+        .getPublicUrl(filePath);
+
+      certificado_url = urlData.publicUrl;
+      setUploading(false);
+    }
+
+    onSubmit({ ...values, certificado_url });
+  };
+
+  const busy = isLoading || uploading;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,7 +126,7 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
           <DialogTitle>Registrar Calibração</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField control={form.control} name="instrumento_id" render={({ field }) => (
               <FormItem>
                 <FormLabel>Instrumento</FormLabel>
@@ -119,13 +174,45 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="certificado_url" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Link do Certificado</FormLabel>
-                <FormControl><Input type="url" placeholder="https://exemplo.com/certificado.pdf" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <FormLabel>Certificado (PDF)</FormLabel>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {file ? (
+                <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3">
+                  <FileText className="h-5 w-5 text-primary shrink-0" />
+                  <span className="text-sm truncate flex-1">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  Selecionar PDF
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">Máximo 10MB. Opcional.</p>
+            </div>
+
             <FormField control={form.control} name="observacoes" render={({ field }) => (
               <FormItem>
                 <FormLabel>Observações</FormLabel>
@@ -135,8 +222,8 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
             )} />
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Salvando..." : "Registrar"}
+              <Button type="submit" disabled={busy}>
+                {uploading ? "Enviando..." : isLoading ? "Salvando..." : "Registrar"}
               </Button>
             </div>
           </form>
