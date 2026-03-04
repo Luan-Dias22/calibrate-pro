@@ -32,9 +32,8 @@ const schema = z.object({
   instrumento_id: z.string().min(1, "Selecione um instrumento"),
   data_calibracao: z.string().min(1, "Obrigatório"),
   resultado: z.enum(["aprovado", "reprovado"]),
-  erro_medido: z.coerce.number().min(0, "Deve ser >= 0"),
-  tolerancia: z.coerce.number().min(0, "Deve ser >= 0"),
   tecnico_nome: z.string().trim().min(1, "Obrigatório").max(100),
+  certificado_url: z.string().url("URL inválida").optional().or(z.literal("")),
   observacoes: z.string().max(500).optional(),
 });
 
@@ -55,9 +54,8 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
       instrumento_id: "",
       data_calibracao: new Date().toISOString().split("T")[0],
       resultado: "aprovado",
-      erro_medido: 0,
-      tolerancia: 0,
       tecnico_nome: "",
+      certificado_url: "",
       observacoes: "",
     },
   });
@@ -114,26 +112,17 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
                 </FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="erro_medido" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Erro Medido</FormLabel>
-                  <FormControl><Input type="number" step="any" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="tolerancia" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tolerância</FormLabel>
-                  <FormControl><Input type="number" step="any" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
             <FormField control={form.control} name="tecnico_nome" render={({ field }) => (
               <FormItem>
                 <FormLabel>Técnico Responsável</FormLabel>
                 <FormControl><Input placeholder="Nome do técnico" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="certificado_url" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Link do Certificado</FormLabel>
+                <FormControl><Input type="url" placeholder="https://exemplo.com/certificado.pdf" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
