@@ -33,9 +33,10 @@ export default function Calibrations() {
         instrumento_id: values.instrumento_id,
         data_calibracao: values.data_calibracao,
         resultado: values.resultado,
-        erro_medido: values.erro_medido,
-        tolerancia: values.tolerancia,
+        erro_medido: 0,
+        tolerancia: 0,
         tecnico_nome: values.tecnico_nome,
+        certificado_url: values.certificado_url || null,
         observacoes: values.observacoes || null,
         proxima_calibracao: proxima,
       },
@@ -76,8 +77,7 @@ export default function Calibrations() {
                 <TableHead className="font-semibold text-xs">Data</TableHead>
                 <TableHead className="font-semibold text-xs">Técnico</TableHead>
                 <TableHead className="font-semibold text-xs">Resultado</TableHead>
-                <TableHead className="font-semibold text-xs">Erro Medido</TableHead>
-                <TableHead className="font-semibold text-xs">Tolerância</TableHead>
+                <TableHead className="font-semibold text-xs">Certificado</TableHead>
                 <TableHead className="font-semibold text-xs">Próx. Calibração</TableHead>
               </TableRow>
             </TableHeader>
@@ -102,14 +102,21 @@ export default function Calibrations() {
                       {cal.resultado === "aprovado" ? "Aprovado" : "Reprovado"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm font-mono">{cal.erro_medido}</TableCell>
-                  <TableCell className="text-sm font-mono">{cal.tolerancia}</TableCell>
+                  <TableCell>
+                    {cal.certificado_url ? (
+                      <a href={cal.certificado_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
+                        Ver certificado
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-sm font-mono">{cal.proxima_calibracao}</TableCell>
                 </TableRow>
               ))}
               {calibrations.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <ClipboardCheck className="h-8 w-8 opacity-30" />
                       Nenhuma calibração registrada.
