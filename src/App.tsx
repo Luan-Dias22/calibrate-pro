@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Instruments from "./pages/Instruments";
 import Calibrations from "./pages/Calibrations";
 import Settings from "./pages/Settings";
+import UserManagement from "./pages/UserManagement";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/instrumentos" element={<Instruments />} />
               <Route path="/calibracoes" element={<Calibrations />} />
               <Route path="/configuracoes" element={<Settings />} />
+              <Route path="/usuarios" element={<UserManagement />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
