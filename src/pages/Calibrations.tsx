@@ -10,18 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ClipboardCheck, Plus } from "lucide-react";
-import { CalibrationDialog, type CalibrationFormValues } from "@/components/CalibrationDialog";
-import { useCalibrations, useCreateCalibration } from "@/hooks/useCalibrations";
+import { ClipboardCheck, Plus, Pencil } from "lucide-react";
+import { CalibrationDialog, type CalibrationFormValues, type CalibrationDefaultValues } from "@/components/CalibrationDialog";
+import { useCalibrations, useCreateCalibration, useUpdateCalibration } from "@/hooks/useCalibrations";
 import { useInstruments } from "@/hooks/useInstruments";
 
 export default function Calibrations() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCal, setEditingCal] = useState<CalibrationDefaultValues | undefined>();
   const { data: calibrations = [], isLoading } = useCalibrations();
   const { data: instruments = [] } = useInstruments();
   const createMutation = useCreateCalibration();
+  const updateMutation = useUpdateCalibration();
 
-  const handleSubmit = (values: CalibrationFormValues) => {
+  const handleCreate = (values: CalibrationFormValues) => {
     const instrument = instruments.find((i) => i.id === values.instrumento_id);
     const periodicidade = instrument?.periodicidade_dias || 180;
     const dataCal = new Date(values.data_calibracao);
@@ -40,8 +42,49 @@ export default function Calibrations() {
         observacoes: values.observacoes || null,
         proxima_calibracao: proxima,
       },
-      { onSuccess: () => setDialogOpen(false) }
+      { onSuccess: () => { setDialogOpen(false); setEditingCal(undefined); } }
     );
+  };
+
+  const handleUpdate = (values: CalibrationFormValues) => {
+    if (!editingCal?.id) return;
+    const instrument = instruments.find((i) => i.id === values.instrumento_id);
+    const periodicidade = instrument?.periodicidade_dias || 180;
+    const dataCal = new Date(values.data_calibracao);
+    dataCal.setDate(dataCal.getDate() + periodicidade);
+    const proxima = dataCal.toISOString().split("T")[0];
+
+    updateMutation.mutate(
+      {
+        id: editingCal.id,
+        instrumento_id: values.instrumento_id,
+        data_calibracao: values.data_calibracao,
+        resultado: values.resultado,
+        tecnico_nome: values.tecnico_nome,
+        certificado_url: values.certificado_url || null,
+        observacoes: values.observacoes || null,
+        proxima_calibracao: proxima,
+      },
+      { onSuccess: () => { setDialogOpen(false); setEditingCal(undefined); } }
+    );
+  };
+
+  const openEdit = (cal: any) => {
+    setEditingCal({
+      id: cal.id,
+      instrumento_id: cal.instrumento_id,
+      data_calibracao: cal.data_calibracao,
+      resultado: cal.resultado,
+      tecnico_nome: cal.tecnico_nome,
+      observacoes: cal.observacoes || "",
+      certificado_url: cal.certificado_url,
+    });
+    setDialogOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditingCal(undefined);
+    setDialogOpen(true);
   };
 
   if (isLoading) {
@@ -53,6 +96,9 @@ export default function Calibrations() {
     );
   }
 
+  const isEditing = !!editingCal?.id;
+  const activeMutation = isEditing ? updateMutation : createMutation;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -62,7 +108,7 @@ export default function Calibrations() {
             Histórico de calibrações realizadas
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setDialogOpen(true)}>
+        <Button className="gap-2" onClick={openCreate}>
           <Plus className="h-4 w-4" />
           Registrar Calibração
         </Button>
@@ -79,6 +125,7 @@ export default function Calibrations() {
                 <TableHead className="font-semibold text-xs">Resultado</TableHead>
                 <TableHead className="font-semibold text-xs">Certificado</TableHead>
                 <TableHead className="font-semibold text-xs">Próx. Calibração</TableHead>
+                <TableHead className="font-semibold text-xs w-[60px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -112,11 +159,16 @@ export default function Calibrations() {
                     )}
                   </TableCell>
                   <TableCell className="text-sm font-mono">{cal.proxima_calibracao}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(cal)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
               {calibrations.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <ClipboardCheck className="h-8 w-8 opacity-30" />
                       Nenhuma calibração registrada.
@@ -131,10 +183,11 @@ export default function Calibrations() {
 
       <CalibrationDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(v) => { setDialogOpen(v); if (!v) setEditingCal(undefined); }}
         instruments={instruments}
-        onSubmit={handleSubmit}
-        isLoading={createMutation.isPending}
+        onSubmit={isEditing ? handleUpdate : handleCreate}
+        isLoading={activeMutation.isPending}
+        defaultValues={editingCal}
       />
     </div>
   );
