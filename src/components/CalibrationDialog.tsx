@@ -146,7 +146,7 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Registrar Calibração</DialogTitle>
+          <DialogTitle>{title || (isEdit ? "Editar Calibração" : "Registrar Calibração")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
