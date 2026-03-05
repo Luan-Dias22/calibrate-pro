@@ -50,3 +50,25 @@ export function useCreateCalibration() {
     onError: (err: Error) => toast.error(`Erro ao registrar: ${err.message}`),
   });
 }
+
+export function useUpdateCalibration() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<CalibrationInsert> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("calibrations")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["calibrations"] });
+      qc.invalidateQueries({ queryKey: ["instruments"] });
+      toast.success("Calibração atualizada com sucesso!");
+    },
+    onError: (err: Error) => toast.error(`Erro ao atualizar: ${err.message}`),
+  });
+}
