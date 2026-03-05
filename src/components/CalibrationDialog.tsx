@@ -248,7 +248,6 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
               <Button type="submit" disabled={busy}>
                 {uploading ? "Enviando..." : isLoading ? "Salvando..." : isEdit ? "Salvar" : "Registrar"}
               </Button>
-              </Button>
             </div>
           </form>
         </Form>
