@@ -3,19 +3,29 @@ import { Badge } from "@/components/ui/badge";
 import { useInstruments, type Instrument } from "@/hooks/useInstruments";
 import { Skeleton } from "@/components/ui/skeleton";
 
+function normalizeDate(dateStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function todayLocal() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 function getAlertInstruments(instruments: Instrument[]) {
-  const today = new Date();
+  const today = todayLocal();
   const in30Days = new Date(today);
   in30Days.setDate(in30Days.getDate() + 30);
 
   const vencidos = instruments.filter(i => {
     if (!i.proxima_calibracao) return false;
-    return new Date(i.proxima_calibracao) < today;
+    return normalizeDate(i.proxima_calibracao) < today;
   });
 
   const aVencer = instruments.filter(i => {
     if (!i.proxima_calibracao) return false;
-    const prox = new Date(i.proxima_calibracao);
+    const prox = normalizeDate(i.proxima_calibracao);
     return prox >= today && prox <= in30Days;
   });
 

@@ -62,6 +62,19 @@ export function useUpdateCalibration() {
         .select()
         .single();
       if (error) throw error;
+
+      // Sync instrument dates when calibration is updated
+      if (updates.instrumento_id && (updates.data_calibracao || updates.proxima_calibracao)) {
+        const updatePayload: Record<string, string> = {};
+        if (updates.data_calibracao) updatePayload.ultima_calibracao = updates.data_calibracao;
+        if (updates.proxima_calibracao) updatePayload.proxima_calibracao = updates.proxima_calibracao;
+        
+        await supabase
+          .from("instruments")
+          .update(updatePayload)
+          .eq("id", updates.instrumento_id);
+      }
+
       return data;
     },
     onSuccess: () => {
