@@ -36,6 +36,7 @@ const schema = z.object({
   data_calibracao: z.string().min(1, "Obrigatório"),
   resultado: z.enum(["aprovado", "reprovado"]),
   tecnico_nome: z.string().trim().min(1, "Obrigatório").max(100),
+  proxima_calibracao: z.string().min(1, "Obrigatório"),
   observacoes: z.string().max(500).optional(),
 });
 
