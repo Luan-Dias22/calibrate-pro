@@ -91,6 +91,7 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
           data_calibracao: defaultValues.data_calibracao || new Date().toISOString().split("T")[0],
           resultado: defaultValues.resultado || "aprovado",
           tecnico_nome: defaultValues.tecnico_nome || "",
+          proxima_calibracao: defaultValues.proxima_calibracao || "",
           observacoes: defaultValues.observacoes || "",
         });
       } else {
