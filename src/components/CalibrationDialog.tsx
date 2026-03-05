@@ -101,6 +101,19 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
     }
   }, [open, form, defaultValues]);
 
+  // Auto-calculate proxima_calibracao when creating new calibration
+  const watchInstrumento = form.watch("instrumento_id");
+  const watchDataCal = form.watch("data_calibracao");
+
+  useEffect(() => {
+    if (isEdit || !watchInstrumento || !watchDataCal) return;
+    const instrument = instruments.find((i) => i.id === watchInstrumento);
+    if (!instrument) return;
+    const dataCal = new Date(watchDataCal);
+    dataCal.setDate(dataCal.getDate() + (instrument.periodicidade_dias || 180));
+    form.setValue("proxima_calibracao", dataCal.toISOString().split("T")[0]);
+  }, [watchInstrumento, watchDataCal, isEdit, instruments, form]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
