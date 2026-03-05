@@ -64,6 +64,7 @@ export default function Calibrations() {
       data_calibracao: cal.data_calibracao,
       resultado: cal.resultado,
       tecnico_nome: cal.tecnico_nome,
+      proxima_calibracao: cal.proxima_calibracao,
       observacoes: cal.observacoes || "",
       certificado_url: cal.certificado_url,
     });
