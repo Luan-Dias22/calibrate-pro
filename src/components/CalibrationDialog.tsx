@@ -50,6 +50,7 @@ export interface CalibrationDefaultValues {
   data_calibracao?: string;
   resultado?: "aprovado" | "reprovado";
   tecnico_nome?: string;
+  proxima_calibracao?: string;
   observacoes?: string;
   certificado_url?: string | null;
 }
