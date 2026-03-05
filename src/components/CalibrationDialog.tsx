@@ -43,18 +43,31 @@ export type CalibrationFormValues = z.infer<typeof schema> & {
   certificado_url?: string | null;
 };
 
+export interface CalibrationDefaultValues {
+  id?: string;
+  instrumento_id?: string;
+  data_calibracao?: string;
+  resultado?: "aprovado" | "reprovado";
+  tecnico_nome?: string;
+  observacoes?: string;
+  certificado_url?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   instruments: Instrument[];
   onSubmit: (values: CalibrationFormValues) => void;
   isLoading?: boolean;
+  defaultValues?: CalibrationDefaultValues;
+  title?: string;
 }
 
-export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, isLoading }: Props) {
+export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, isLoading, defaultValues, title }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isEdit = !!defaultValues?.id;
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -69,10 +82,20 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
 
   useEffect(() => {
     if (open) {
-      form.reset();
+      if (defaultValues) {
+        form.reset({
+          instrumento_id: defaultValues.instrumento_id || "",
+          data_calibracao: defaultValues.data_calibracao || new Date().toISOString().split("T")[0],
+          resultado: defaultValues.resultado || "aprovado",
+          tecnico_nome: defaultValues.tecnico_nome || "",
+          observacoes: defaultValues.observacoes || "",
+        });
+      } else {
+        form.reset();
+      }
       setFile(null);
     }
-  }, [open, form]);
+  }, [open, form, defaultValues]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -123,7 +146,7 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Registrar Calibração</DialogTitle>
+          <DialogTitle>{title || (isEdit ? "Editar Calibração" : "Registrar Calibração")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -223,7 +246,7 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
               <Button type="submit" disabled={busy}>
-                {uploading ? "Enviando..." : isLoading ? "Salvando..." : "Registrar"}
+                {uploading ? "Enviando..." : isLoading ? "Salvando..." : isEdit ? "Salvar" : "Registrar"}
               </Button>
             </div>
           </form>
