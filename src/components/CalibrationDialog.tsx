@@ -194,6 +194,13 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
                 </FormItem>
               )} />
             </div>
+            <FormField control={form.control} name="proxima_calibracao" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Próxima Calibração</FormLabel>
+                <FormControl><Input type="date" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
             <FormField control={form.control} name="tecnico_nome" render={({ field }) => (
               <FormItem>
                 <FormLabel>Técnico Responsável</FormLabel>
