@@ -32,8 +32,19 @@ const COLORS = [
   "hsl(0, 72%, 51%)",
 ];
 
+function normalizeDate(dateStr: string) {
+  // Parse YYYY-MM-DD as local date to avoid timezone offset issues
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function todayLocal() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 function getStats(instruments: any[]) {
-  const today = new Date();
+  const today = todayLocal();
   const in30Days = new Date(today);
   in30Days.setDate(in30Days.getDate() + 30);
 
@@ -43,18 +54,18 @@ function getStats(instruments: any[]) {
 
   const vencidos = instruments.filter(i => {
     if (!i.proxima_calibracao) return false;
-    return new Date(i.proxima_calibracao) < today;
+    return normalizeDate(i.proxima_calibracao) < today;
   }).length;
 
   const aVencer30 = instruments.filter(i => {
     if (!i.proxima_calibracao) return false;
-    const prox = new Date(i.proxima_calibracao);
+    const prox = normalizeDate(i.proxima_calibracao);
     return prox >= today && prox <= in30Days;
   }).length;
 
   const emDia = instruments.filter(i => {
     if (!i.proxima_calibracao) return false;
-    return new Date(i.proxima_calibracao) > in30Days;
+    return normalizeDate(i.proxima_calibracao) > in30Days;
   }).length;
 
   const taxaConformidade = total > 0 ? Math.round(((total - vencidos) / total) * 100) : 0;
