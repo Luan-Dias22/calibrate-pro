@@ -78,6 +78,7 @@ export function CalibrationDialog({ open, onOpenChange, instruments, onSubmit, i
       data_calibracao: new Date().toISOString().split("T")[0],
       resultado: "aprovado",
       tecnico_nome: "",
+      proxima_calibracao: "",
       observacoes: "",
     },
   });
