@@ -42,12 +42,6 @@ export default function Calibrations() {
 
   const handleUpdate = (values: CalibrationFormValues) => {
     if (!editingCal?.id) return;
-    const instrument = instruments.find((i) => i.id === values.instrumento_id);
-    const periodicidade = instrument?.periodicidade_dias || 180;
-    const dataCal = new Date(values.data_calibracao);
-    dataCal.setDate(dataCal.getDate() + periodicidade);
-    const proxima = dataCal.toISOString().split("T")[0];
-
     updateMutation.mutate(
       {
         id: editingCal.id,
@@ -57,7 +51,7 @@ export default function Calibrations() {
         tecnico_nome: values.tecnico_nome,
         certificado_url: values.certificado_url || null,
         observacoes: values.observacoes || null,
-        proxima_calibracao: proxima,
+        proxima_calibracao: values.proxima_calibracao,
       },
       { onSuccess: () => { setDialogOpen(false); setEditingCal(undefined); } }
     );
