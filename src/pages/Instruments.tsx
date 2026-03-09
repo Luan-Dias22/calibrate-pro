@@ -182,6 +182,7 @@ export default function Instruments() {
             <SelectItem value="a_vencer">A vencer (30d)</SelectItem>
             <SelectItem value="vencido">Vencido</SelectItem>
           </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
