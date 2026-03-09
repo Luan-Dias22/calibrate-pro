@@ -67,6 +67,7 @@ function getCalibrationBadge(proximaCalibracao?: string | null) {
 export default function Instruments() {
   const [search, setSearch] = useState("");
   const [setorFilter, setSetorFilter] = useState("all");
+  const [calibracaoFilter, setCalibracaoFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingInstrument, setEditingInstrument] = useState<Instrument | null>(null);
@@ -80,6 +81,11 @@ export default function Instruments() {
   const setores = useMemo(() => [...new Set(instruments.map((i) => i.setor))], [instruments]);
 
   const filtered = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const in30 = new Date(today);
+    in30.setDate(in30.getDate() + 30);
+
     return instruments.filter((i) => {
       const matchSearch =
         i.codigo.toLowerCase().includes(search.toLowerCase()) ||
@@ -88,9 +94,20 @@ export default function Instruments() {
         i.responsavel.toLowerCase().includes(search.toLowerCase());
       const matchSetor = setorFilter === "all" || i.setor === setorFilter;
       const matchStatus = statusFilter === "all" || i.status === statusFilter;
-      return matchSearch && matchSetor && matchStatus;
+
+      let matchCalibracao = true;
+      if (calibracaoFilter !== "all" && i.proxima_calibracao) {
+        const prox = new Date(i.proxima_calibracao + "T00:00:00");
+        if (calibracaoFilter === "vencido") matchCalibracao = prox < today;
+        else if (calibracaoFilter === "a_vencer") matchCalibracao = prox >= today && prox <= in30;
+        else if (calibracaoFilter === "em_dia") matchCalibracao = prox > in30;
+      } else if (calibracaoFilter !== "all" && !i.proxima_calibracao) {
+        matchCalibracao = false;
+      }
+
+      return matchSearch && matchSetor && matchStatus && matchCalibracao;
     });
-  }, [instruments, search, setorFilter, statusFilter]);
+  }, [instruments, search, setorFilter, statusFilter, calibracaoFilter]);
 
   const handleSubmit = (values: any) => {
     if (editingInstrument) {
@@ -153,6 +170,17 @@ export default function Instruments() {
           <SelectContent>
             <SelectItem value="all">Todos os Setores</SelectItem>
             {setores.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={calibracaoFilter} onValueChange={setCalibracaoFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Calibração" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Calibrações</SelectItem>
+            <SelectItem value="em_dia">Em dia</SelectItem>
+            <SelectItem value="a_vencer">A vencer (30d)</SelectItem>
+            <SelectItem value="vencido">Vencido</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
