@@ -67,6 +67,7 @@ function getCalibrationBadge(proximaCalibracao?: string | null) {
 export default function Instruments() {
   const [search, setSearch] = useState("");
   const [setorFilter, setSetorFilter] = useState("all");
+  const [calibracaoFilter, setCalibracaoFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingInstrument, setEditingInstrument] = useState<Instrument | null>(null);
