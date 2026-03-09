@@ -172,6 +172,16 @@ export default function Instruments() {
             {setores.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={calibracaoFilter} onValueChange={setCalibracaoFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Calibração" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Calibrações</SelectItem>
+            <SelectItem value="em_dia">Em dia</SelectItem>
+            <SelectItem value="a_vencer">A vencer (30d)</SelectItem>
+            <SelectItem value="vencido">Vencido</SelectItem>
+          </SelectContent>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
